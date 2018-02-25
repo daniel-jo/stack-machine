@@ -17,8 +17,6 @@ enum Instruction
 };
 
 // For assembler
-//const int NR_OF_INSTRUCTIONS = 3;
-//const int INSTRUCTION_LENGTH = 16; //Instruction length in byte (how many chars) Needed?
 const char INSTRUCTION[NR_OF_INSTRUCTIONS][INSTRUCTION_LENGTH] = 
 {
 	"push",
@@ -103,8 +101,8 @@ char** loadFile(const char* fileName, size_t* opsCount)
 }
 
 
-// Compiles the content of the file to bytecode
-int32_t* compile(const char* fileName, size_t* opsCount)
+// Assembles the content of the file to bytecode
+int32_t* assemble(const char* fileName, size_t* opsCount)
 { 
 	char** ops = loadFile(fileName, opsCount);
 	
@@ -188,7 +186,7 @@ int main(int argc, char *argv[])
 	    const char *fileName = argv[1]; // should check that argc > 1
 		size_t* opsCount = (size_t*) malloc(sizeof(size_t));
 	
-		int32_t* bytecode = compile(fileName, opsCount);
+		int32_t* bytecode = assemble(fileName, opsCount);
 	
 		execBytecode(bytecode, opsCount);
 	  	
