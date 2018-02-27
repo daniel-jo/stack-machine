@@ -27,11 +27,11 @@ const char INSTRUCTION[NR_OF_INSTRUCTIONS][INSTRUCTION_LENGTH] =
 // Loads file in to memory and separates operator/instruction from operand
 char** loadFile(const char* fileName, size_t* opsCount)
 {
-	int lines_allocated = 64;
-	int max_line_len = 100;
+	int linesAlloc = 64;
+	int maxLineLen = 64;
 
     // Allocate lines of text
-	char** ops = (char**)malloc(sizeof(char*)*lines_allocated);
+	char** ops = (char**)malloc(sizeof(char*)*linesAlloc);
 	if ( ops == NULL )
     {
     	fprintf(stderr, "Out of memory (1).\n");
@@ -48,55 +48,52 @@ char** loadFile(const char* fileName, size_t* opsCount)
 	int i = 0;
 	do
 	{
-		// Have we gone over our line allocation?
-		if ( i >= lines_allocated )
+		if ( i >= linesAlloc )
 		{
-			int new_size;
+			int newLinesAlloc;
 
 			// Double our allocation and re-allocate
-			new_size = lines_allocated*2;
-			ops = (char **)realloc(ops,sizeof(char*)*new_size);
+			newLinesAlloc = linesAlloc*2;
+			ops = (char **)realloc(ops,sizeof(char*) * newLinesAlloc);
 			if ( ops == NULL )
 			{
 				fprintf(stderr, "Out of memory.\n");
 				exit(3);
 			}
-			lines_allocated = new_size;
+			linesAlloc = newLinesAlloc;
 		}
 
 		// Allocate space for the next line
-		ops[i] = (char*)malloc(max_line_len);
+		ops[i] = (char*)malloc(maxLineLen);
 		if ( ops[i] == NULL )
         {
         	fprintf(stderr, "Out of memory (3).\n");
         	exit(4);
         }
 
-		// Get the next character
-		char _char = fgetc(fp);	
+		// Get the first character in the line
+		char currChar = fgetc(fp);
+		int j = 0;
 		if ( feof(fp) ) 
 		{
 			break;
 		} 
 		
-        // Concatenate the character if it's not an space or new line (\n, \r)
-		int j = 0;
-		for ( ; _char != ' ' && _char != '\n' && _char != '\r'; ++j )
-		{		
-			ops[i][j] = _char;
-			_char = fgetc(fp);
+        // Concatenate the character if it's not a space or new line (\n, \r)
+		while ( currChar != ' ' && currChar != '\n' && currChar != '\r' )
+		{
+			ops[i][j++] = currChar;
+			currChar = fgetc(fp);
+			//++j;
 		}
-		ops[i][j] = '\0';
-
-		++i;
+		ops[i++][j] = '\0';
 	}
-	while (1);
+	while ( true );
 	
     // Close file
     fclose(fp);
 
 	*opsCount = i;
-
 	return ops;   
 }
 
@@ -106,8 +103,7 @@ int32_t* assemble(const char* fileName, size_t* opsCount)
 { 
 	char** ops = loadFile(fileName, opsCount);
 	
-	//int32_t* bytecode = convertToBytecode(ops, opsCount);
-	int32_t* bytecode = (int32_t*)malloc(sizeof(int32_t) * (*opsCount)); //int32_t bytecode[*opsCount];
+	int32_t* bytecode = (int32_t*)malloc(sizeof(int32_t) * (*opsCount));
 	for ( int i = 0; i < *opsCount; ++i )
 	{
 		char c = ops[i][0];
@@ -130,7 +126,7 @@ int32_t* assemble(const char* fileName, size_t* opsCount)
 			int count;
 			int result = sscanf(ops[i], "%d%n", &number, &count);
 			
-			if (result != 0 || count != sizeof(ops[i]))
+			if ( result != 0 || count != sizeof(ops[i]) )
 			{
 				bytecode[i] = number;
 			}
@@ -138,7 +134,7 @@ int32_t* assemble(const char* fileName, size_t* opsCount)
 	}
 				
 	// Free memory
-	for ( int i = *opsCount; i >= 0; i-- )
+	for ( int i = *opsCount; i >= 0; --i )
 		free(ops[i]);
 	free(ops);
 
