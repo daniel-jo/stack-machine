@@ -20,18 +20,18 @@ void freeStack(stackp sp)
 
 bool isEmpty(stackp sp)
 {
-	if ( sp->top == -1 )
+	if ( sp->top < 0 )
 		return true;
-	else
-		return false;	
+		
+	return false;	
 }
 
 bool isFull(stackp sp)
 {
-	if ( sp->top == sp->allocated - 1 )
+	if ( sp->top >= sp->allocated - 1 )
 		return true;
-	else
-		return false;
+		
+	return false;
 }
 
 void push(stackp sp, word w)
@@ -48,7 +48,7 @@ void push(stackp sp, word w)
 		if ( sp->memory == NULL )
 		{
 			fprintf(stderr, "Out of memory.\n");
-			exit(3);
+			exit(-1);
 		}
 		sp->allocated = newSize;
 	}
@@ -64,7 +64,10 @@ word pop(stackp sp)
 		--sp->top;
 	}
 	else
-		printf("Could not retrieve data, the stack is empty! \n");	
+	{		
+		fprintf(stderr, "Could not retrieve data, the stack is empty! \n");
+		exit(-1);	
+	}
 		
 	return w;
 }
@@ -73,6 +76,8 @@ word peek(stackp sp)
 {
 	if ( !isEmpty(sp) )
 		return sp->memory[sp->top];
-	else
-		printf("Could not retrieve data, the stack is empty! \n");	
+	else {
+		fprintf(stderr, "Could not retrieve data, the stack is empty! \n");
+		exit(-1);		
+	}
 }

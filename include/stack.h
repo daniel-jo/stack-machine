@@ -5,9 +5,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-
-/* here should be implemented the constraint about 32 bits words... */
-//typedef _Bool bool;
 typedef int32_t word;
 
 typedef struct Stack 
