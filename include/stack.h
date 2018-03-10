@@ -19,9 +19,6 @@ typedef Stack* stackp;
 stackp newStack();
 void freeStack(stackp sp);
 
-bool isEmpty(stackp sp);
-bool isFull(stackp sp);
-
 void push(stackp sp, word w);
 word pop(stackp sp);
 
