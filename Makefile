@@ -11,7 +11,7 @@ CFLAGS:=-std=c99 -Wall -O2
 # Project
 OUTPUT:=vsm
 
-all: $(OBJ)/*.o
+vsm: $(OBJ)/*.o
 	@echo "-- [Linking] ---------------------------------------------"
 	$(CC) -o $(BIN)/$(OUTPUT) $^
 

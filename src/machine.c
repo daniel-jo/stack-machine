@@ -5,176 +5,187 @@
 #include <string.h>
 #include <ctype.h>
 
-#define NR_OF_INSTRUCTIONS 3
-#define INSTRUCTION_LENGTH 16
+#include <limits.h>
+
+#define stringify(inst) #inst
+
+#define NR_OF_OPR 3
+#define OPR_LENGTH (32 / CHAR_BIT) + 1 // = 5
+
+#define OPR_SIZE 1 // 1 byte
+#define OPD_SIZE 4 // 4 bytes
+#define INST_SIZE OPR_SIZE + OPD_SIZE
 
 // Instruction set of the virtual machine
 enum Instruction
 {
-    instPush,
-    instAdd,
-    instSub
+	instPush,
+	instAdd,
+	instSub
 };
 
 // For assembler
-const char INSTRUCTION[NR_OF_INSTRUCTIONS][INSTRUCTION_LENGTH] = 
+const char OPERATOR[NR_OF_OPR][OPR_LENGTH] = 
 {
 	"push",
 	"add",
-	"sub"
+	"sub",
 };
 
-// Loads file in to memory and separates operator/instruction from operand.
-char** loadFile(const char* fileName, size_t* opsCount)
+void extractInst(char* line, char SEPARATOR, char* opr, char** opd)
 {
-	int linesAlloc = 64;
-	int maxLineLen = 64;
+	char* spearatorPos = strchr(line, SEPARATOR);
+	if ( spearatorPos )
+	{
+		size_t len = spearatorPos-line;
+		strncpy(opr, line, len);
+		opr[len] = '\0';
 
-    // Allocate lines of text.
-	char** ops = (char**)malloc(sizeof(char*)*linesAlloc);
-	if ( ops == NULL )
-    {
-    	fprintf(stderr, "Out of memory (1).\n");
+		*opd = spearatorPos;
+		char* endl = strchr(*opd, '\n');
+		endl[0] = '\0';
+	}
+	else
+	{
+		memcpy(opr, line, sizeof &opr);
+		char* endl = strchr(opr, '\n');
+		endl[0] = '\0';
+		*opd = NULL;
+	}
+}
+
+uint8_t* assembleInst(char* opr, char** opd)
+{
+	uint8_t* instruction = (uint8_t*) malloc(INST_SIZE);
+	if ( instruction == NULL )
+	{
+		fprintf(stderr, "Out of memory (3).\n");
+		exit(4);
+	}
+
+	for ( int i = 0; i < NR_OF_OPR; ++i )
+	{
+		if ( !strcmp(opr, OPERATOR[i]) )
+		{
+			instruction[0] = i;
+			break;
+		}
+	}
+
+	// If operand is a number convert it to integer.
+	if ( *opd != NULL && !isalpha(*opd[0]) ) 
+	{
+		int32_t number;
+		int count;
+		int result = sscanf(*opd, "%d%n", &number, &count);
+
+		if ( result != 0 || count != sizeof(*opd) )
+		{
+			instruction[1] = number;
+			instruction[2] = number >> 8;
+			instruction[3] = number >> 16;
+			instruction[4] = number >> 24;
+		}
+	}
+	else
+	{
+		// TODO: Handle jump label.
+	}
+
+	return instruction;
+}
+
+// Loads each line of the file into memory.
+uint8_t** assembleFile(const char* fileName, size_t* instCount)
+{
+	uint8_t** instructions = (uint8_t**)malloc(sizeof(uint8_t*)*32);
+
+	if ( !instructions )
+	{
+		fprintf(stderr, "Out of memory (1).\n");
 		exit(1);
 	}
 
-	FILE *fp = fopen(fileName, "r");
-	if ( fp == NULL )
+	int maxLineLen = 64;
+	char line[maxLineLen];
+	const char SEPARATOR = ' ';
+
+	char opr[OPR_LENGTH];
+	char* opd = NULL;
+
+	FILE* fp = fopen(fileName, "r");
+	if ( !fp )
 	{
 		fprintf(stderr, "Error opening file.\n");
 		exit(2);
 	}
 
-	int i = 0;
-	do
-	{
-		if ( i >= linesAlloc )
-		{
-			int newLinesAlloc;
-
-			// Double our allocation and re-allocate.
-			newLinesAlloc = linesAlloc*2;
-			ops = (char **)realloc(ops,sizeof(char*) * newLinesAlloc);
-			if ( ops == NULL )
-			{
-				fprintf(stderr, "Out of memory.\n");
-				exit(3);
-			}
-			linesAlloc = newLinesAlloc;
-		}
-
-		// Allocate space for the next line.
-		ops[i] = (char*)malloc(maxLineLen);
-		if ( ops[i] == NULL )
-        {
-        	fprintf(stderr, "Out of memory (3).\n");
-        	exit(4);
-        }
-
-		// Get the first character in the line.
-		char currChar = fgetc(fp);
-		int j = 0;
-		if ( feof(fp) ) 
-		{
+	while ( true )
+	{ 
+		if ( !fgets(line, maxLineLen, fp) )
 			break;
-		} 
-		
-        // Concatenate the character if it's not a space or new line (\n, \r).
-		while ( currChar != ' ' && currChar != '\n' && currChar != '\r' )
-		{
-			ops[i][j++] = currChar;
-			currChar = fgetc(fp);
-		}
-		ops[i++][j] = '\0';
-	}
-	while ( true );
-	
-    fclose(fp);
+		extractInst(line, SEPARATOR, opr, &opd);
 
-	*opsCount = i;
-	return ops;   
+		instructions[*instCount] = assembleInst(opr, &opd);
+
+		memset(opr, 0, sizeof &opr);
+
+		(*instCount)++;
+	}
+
+	fclose(fp);
+
+	return instructions;
 }
 
-
-// Assembles the content of the file to bytecode.
-int32_t* assemble(char** ops, size_t* opsCount)
-{ 
-	word* bytecode = (word*)malloc(sizeof(word) * (*opsCount));
-	for ( int i = 0; i < *opsCount; ++i )
-	{
-		char c = ops[i][0];
-
-		if ( isalpha(c) ) 
-		{
-			// Match instruction with the instruction set and convert it to bytecode.
-			for ( int instructionNr = 0; instructionNr < NR_OF_INSTRUCTIONS; ++instructionNr )
-			{
-				if ( !strcmp(ops[i], INSTRUCTION[instructionNr]) )
-				{
-					bytecode[i] = instructionNr;									
-				}
-			}
-		}
-		else
-		{
-			// Convert number represented by characters to integer.
-			int number;
-			int count;
-			int result = sscanf(ops[i], "%d%n", &number, &count);
-			
-			if ( result != 0 || count != sizeof(ops[i]) )
-			{
-				bytecode[i] = number;
-			}
-		}		
-	}
-
-	return bytecode;
+uint32_t convertToUint32(uint8_t* a4) {
+	return a4[0] | (a4[1] << 8) | (a4[2] << 16) | (a4[3] << 24);
 }
 
 // Interprets the bytecode,
 void execFile(const char* fileName)
 {
-	size_t* opsCount = (size_t*) malloc(sizeof(size_t));
-	
-	char** ops = loadFile(fileName, opsCount);
-	
-	word* bytecode = assemble(ops, opsCount);
+	printf("mhm: %s", stringify(instPush));
 
+	size_t instCount = 0;
 
-	for ( int i = *opsCount; i >= 0; --i )
-		free(ops[i]);
-	free(ops);
-	
+	uint8_t** instructions = assembleFile(fileName, &instCount);
+
 	stackp sp = newStack();
-	
-	for ( int i = 0; i < *opsCount; ++i )
+
+	size_t pc = 0;
+	while ( pc < instCount )
 	{
-		switch (bytecode[i])
+		uint8_t* instruction = instructions[pc];
+
+		switch (instruction[0])
 		{
 			case instPush:
-				push(sp, bytecode[++i]);
+				push(sp, convertToUint32(++instruction));
 				break;
 
 			case instAdd:
 			{
-				word sum = pop(sp) + pop(sp);
+				uint32_t sum = pop(sp) + pop(sp);
 				push(sp, sum);
 				break;
 			}
-						
+
 			case instSub:
 			{
-				word diff = pop(sp) - pop(sp);
+				uint32_t diff = pop(sp) - pop(sp);
 				push(sp, diff);
 				break;
 			}
 		}
+
+		++pc;
 	}
 
 	printf("result: %d\n", pop(sp));
 
-	free(opsCount);	
-	free(bytecode);
+	for ( int i = instCount; i >= 0; --i )
+		free(instructions[i]);
+	free(instructions);	
 	freeStack(sp);
 }
