@@ -5,13 +5,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef int32_t word;
-
 typedef struct Stack 
 { 
 	int top; 
 	int allocated;
-	word* memory; 
+	int32_t* memory; 
 } Stack;
 
 typedef Stack* stackp;
@@ -19,9 +17,9 @@ typedef Stack* stackp;
 stackp newStack();
 void freeStack(stackp sp);
 
-void push(stackp sp, word w);
-word pop(stackp sp);
+void push(stackp sp, int32_t data);
+int32_t pop(stackp sp);
 
-word peek(stackp sp);
+int32_t peek(stackp sp);
 
 #endif

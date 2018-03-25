@@ -7,8 +7,8 @@ stackp newStack()
 	stackp sp = (stackp) malloc(sizeof(Stack));
 	sp->top = -1;
 	sp->allocated = 1024;
-	sp->memory = (word*) malloc(sizeof(word) * sp->allocated);
-	
+	sp->memory = (int32_t*) malloc(sizeof(int32_t) * sp->allocated);
+
 	return sp;
 }
 
@@ -34,17 +34,17 @@ bool isFull(stackp sp)
 	return false;
 }
 
-void push(stackp sp, word w)
+void push(stackp sp, int32_t data)
 {
 	if ( !isFull(sp) )
 	{
 		++sp->top;
-		sp->memory[sp->top] = w;
+		sp->memory[sp->top] = data;
 	}
 	else
 	{
 		int newSize = sp->allocated*2;
-		sp->memory = (word*) realloc(sp->memory, sizeof(word) * newSize);
+		sp->memory = (int32_t*) realloc(sp->memory, sizeof(int32_t) * newSize);
 		if ( sp->memory == NULL )
 		{
 			fprintf(stderr, "Out of memory.\n");
@@ -54,25 +54,25 @@ void push(stackp sp, word w)
 	}
 }
 
-word pop(stackp sp)
+int32_t pop(stackp sp)
 {
-	word w = -1;
-	
+	int32_t data = -1;
+
 	if ( !isEmpty(sp) ) 
 	{
-		w = sp->memory[sp->top];
+		data = sp->memory[sp->top];
 		--sp->top;
 	}
 	else
-	{		
+	{
 		fprintf(stderr, "Could not retrieve data, the stack is empty! \n");
 		exit(-1);	
 	}
-		
-	return w;
+
+	return data;
 }
 
-word peek(stackp sp)
+int32_t peek(stackp sp)
 {
 	if ( !isEmpty(sp) )
 		return sp->memory[sp->top];
