@@ -7,8 +7,6 @@
 
 #include <limits.h>
 
-#define stringify(inst) #inst
-
 #define NR_OF_OPR 3
 #define OPR_LENGTH (32 / CHAR_BIT) + 1 // = 5
 
@@ -145,8 +143,6 @@ uint32_t convertToUint32(uint8_t* a4) {
 // Interprets the bytecode,
 void execFile(const char* fileName)
 {
-	printf("mhm: %s", stringify(instPush));
-
 	size_t instCount = 0;
 
 	uint8_t** instructions = assembleFile(fileName, &instCount);
