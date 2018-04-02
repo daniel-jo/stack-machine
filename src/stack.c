@@ -36,50 +36,44 @@ bool isFull(stackp sp)
 	return false;
 }
 
+void reallocMem(stackp sp)
+{
+	int newSize = sp->allocated*2;
+	sp->memory = (int32_t*) realloc(sp->memory, sizeof(int32_t) * newSize);
+	if ( sp->memory == NULL )
+	{
+		fprintf(stderr, "Out of memory.\n");
+		exit(-1);
+	}
+	sp->allocated = newSize;
+}
+
 void push(stackp sp, int32_t data)
 {
-	if ( !isFull(sp) )
-	{
-		++sp->top;
-		sp->memory[sp->top] = data;
-	}
-	else
-	{
-		int newSize = sp->allocated*2;
-		sp->memory = (int32_t*) realloc(sp->memory, sizeof(int32_t) * newSize);
-		if ( sp->memory == NULL )
-		{
-			fprintf(stderr, "Out of memory.\n");
-			exit(-1);
-		}
-		sp->allocated = newSize;
-	}
+	if ( isFull(sp) )
+		reallocMem(sp);
+
+	sp->memory[++sp->top] = data;
 }
 
 int32_t pop(stackp sp)
 {
-	int32_t data = -1;
-
-	if ( !isEmpty(sp) ) 
-	{
-		data = sp->memory[sp->top];
-		--sp->top;
-	}
-	else
+	if ( isEmpty(sp) )
 	{
 		fprintf(stderr, "Could not retrieve data, the stack is empty! \n");
 		exit(-1);	
 	}
 
-	return data;
+	return sp->memory[sp->top--];
 }
 
 int32_t peek(stackp sp)
 {
-	if ( !isEmpty(sp) )
-		return sp->memory[sp->top];
-	else {
+	if ( isEmpty(sp) )
+	{
 		fprintf(stderr, "Could not retrieve data, the stack is empty! \n");
-		exit(-1);		
+		exit(-1);	
 	}
+
+	return sp->memory[sp->top];
 }
