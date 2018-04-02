@@ -6,6 +6,15 @@
 #include "assembler.h"
 #include "instructions.h"
 
+#define checkOutOfMem(data) \
+({ \
+	if ( !data ) \
+	{ \
+		fprintf(stderr, "Out of memory.\n"); \
+		exit(EXIT_FAILURE); \
+	} \
+})
+
 void extractInst(char* line, char SEPARATOR, char* opr, char** opd)
 {
 	char* spearatorPos = strchr(line, SEPARATOR);
@@ -30,17 +39,22 @@ void extractInst(char* line, char SEPARATOR, char* opr, char** opd)
 
 uint8_t* assembleInst(char* opr, char** opd)
 {
-	uint8_t* instruction = (uint8_t*) malloc(INST_SIZE);
-	if ( instruction == NULL )
+	if ( !*opd )
 	{
-		fprintf(stderr, "Out of memory (3).\n");
-		exit(4);
+		uint8_t* instruction = (uint8_t*) malloc(OPR_SIZE); 
+		checkOutOfMem(instruction);
+		*instruction = strToOpr(opr);
+		return instruction;
 	}
+	
+	uint8_t* instruction = (uint8_t*) malloc(INST_SIZE);
+
+	checkOutOfMem(instruction);
 
 	instruction[0] = strToOpr(opr);
 
 	// If operand is a number convert it to integer.
-	if ( *opd != NULL && !isalpha(*opd[0]) ) 
+	if ( !isalpha(*opd[0]) ) 
 	{
 		int32_t number;
 		int count;
@@ -67,11 +81,7 @@ uint8_t** assembleFile(const char* fileName, size_t* instCount)
 {
 	uint8_t** instructions = (uint8_t**)malloc(sizeof(uint8_t*)*32);
 
-	if ( !instructions )
-	{
-		fprintf(stderr, "Out of memory (1).\n");
-		exit(1);
-	}
+	checkOutOfMem(instructions);
 
 	int maxLineLen = 64;
 	char line[maxLineLen];
@@ -84,7 +94,7 @@ uint8_t** assembleFile(const char* fileName, size_t* instCount)
 	if ( !fp )
 	{
 		fprintf(stderr, "Error opening file.\n");
-		exit(2);
+		exit(EXIT_FAILURE);
 	}
 
 	while ( true )
