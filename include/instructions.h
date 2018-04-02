@@ -12,6 +12,8 @@ typedef enum OPR
 	PUSH,
 	ADD,
 	SUB,
+	MULT,
+	DIV,
 	OPR_COUNT
 } opr_t;
 

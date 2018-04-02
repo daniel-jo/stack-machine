@@ -6,8 +6,34 @@
 #include "instructions.h"
 #include "stack.h"
 
-uint32_t convertToUint32(uint8_t* a4) {
+uint32_t convertToUint32(uint8_t* a4) 
+{
 	return a4[0] | (a4[1] << 8) | (a4[2] << 16) | (a4[3] << 24);
+}
+
+void instPush(stackp sp, uint32_t data) 
+{
+	push(sp, data);
+}
+
+void instAdd(stackp sp) 
+{
+	push(sp, pop(sp) + pop(sp));
+}
+
+void instSub(stackp sp)
+{
+	push(sp, pop(sp) - pop(sp));
+}
+
+void instMult(stackp sp)
+{
+	push(sp, pop(sp) * pop(sp));
+}
+
+void instDiv(stackp sp)
+{
+	push(sp, pop(sp) / pop(sp));
 }
 
 // Interprets the bytecode,
@@ -31,15 +57,23 @@ void execFile(const char* fileName)
 				break;
 
 			case PUSH:
-				push(sp, convertToUint32(++instruction));
+				instPush(sp, convertToUint32(++instruction));
 				break;
 
 			case ADD:
-				push(sp, pop(sp) + pop(sp));
+				instAdd(sp);
 				break;
 
 			case SUB:
-				push(sp, pop(sp) - pop(sp));
+				instSub(sp);
+				break;
+			
+			case MULT:
+				instMult(sp);
+				break;
+
+			case DIV:
+				instDiv(sp);
 				break;
 		}
 

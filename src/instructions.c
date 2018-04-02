@@ -7,7 +7,9 @@ const char OPR_STR[OPR_COUNT][OPR_LENGTH] =
 	"nop",
 	"push",
 	"add",
-	"sub"
+	"sub",
+	"mult",
+	"div"
 };
 
 char* oprToStr(opr_t opr) { return (char*) OPR_STR[opr]; }
