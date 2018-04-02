@@ -43,7 +43,7 @@ void reallocMem(stackp sp)
 	if ( sp->memory == NULL )
 	{
 		fprintf(stderr, "Out of memory.\n");
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	sp->allocated = newSize;
 }
@@ -61,7 +61,7 @@ int32_t pop(stackp sp)
 	if ( isEmpty(sp) )
 	{
 		fprintf(stderr, "Could not retrieve data, the stack is empty! \n");
-		exit(-1);	
+		exit(EXIT_FAILURE);	
 	}
 
 	return sp->memory[sp->top--];
@@ -72,7 +72,7 @@ int32_t peek(stackp sp)
 	if ( isEmpty(sp) )
 	{
 		fprintf(stderr, "Could not retrieve data, the stack is empty! \n");
-		exit(-1);	
+		exit(EXIT_FAILURE);	
 	}
 
 	return sp->memory[sp->top];
