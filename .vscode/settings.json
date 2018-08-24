@@ -1,4 +1,8 @@
 {
+	"editor.detectIndentation": false,
+	"editor.tabSize": 4,
+	"editor.insertSpaces": false,
+    "editor.renderWhitespace": "boundary",
 	"files.associations": {
 		"string.h": "c",
 		"assembler.h": "c",
