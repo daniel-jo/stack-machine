@@ -1,0 +1,3 @@
+
+Ex. add 5 10 translates to: push 5 -> push 10 -> add.
+Ex. add 5 translates to: push 5 -> add. 

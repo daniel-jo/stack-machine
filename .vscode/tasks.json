@@ -1,0 +1,28 @@
+{
+   "version": "0.1.0",
+    "linux": {
+        "command": "bash",
+        "args": ["-c"],
+        "isShellCommand": true,
+        "showOutput": "always",
+        "suppressTaskName": true,
+        "options": {
+            "cwd": "${workspaceRoot}"
+        },
+        "tasks": [
+            {
+                "taskName": "vsm",
+                "args": [
+                    "make vsm"
+                ],
+                "isBuildCommand": true
+            },
+            {
+                "taskName": "clean",
+                "args": [
+                    "make clean"
+                ]
+            }
+        ]
+    }
+}
